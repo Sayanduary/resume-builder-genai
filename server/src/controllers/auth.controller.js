@@ -6,7 +6,7 @@ import userModel from "../models/user.model.js";
 /* ================= REGISTER ================= */
 export async function registerUserController(req, res, next) {
   try {
-    const { username, email, password } = req.body || {};
+    const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -14,36 +14,34 @@ export async function registerUserController(req, res, next) {
       });
     }
 
-    const isUserExists = await userModel.findOne({
+    const existingUser = await userModel.findOne({
       $or: [{ username }, { email }],
     });
 
-    if (isUserExists) {
+    if (existingUser) {
       return res.status(400).json({
         message: "Account already exists",
       });
     }
 
-    const hash = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await userModel.create({
       username,
       email,
-      password: hash,
+      password: hashedPassword,
     });
 
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET missing in env");
-    }
-
-    const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "none",
-      secure: true, // ✅ REQUIRED for tunnel
+      sameSite: "lax",
+      secure: false,
     });
 
     return res.status(201).json({
@@ -55,53 +53,56 @@ export async function registerUserController(req, res, next) {
       },
     });
   } catch (err) {
-    console.error("🔥 REGISTER ERROR:", err);
+    console.error("REGISTER ERROR:", err);
     next(err);
   }
 }
 
 /* ================= LOGIN ================= */
 export async function loginUserController(req, res, next) {
+  console.log("LOGIN HIT")
   try {
-    console.log(" LOGIN HIT");
+    const { email, password } = req.body;
 
-    const { email, password } = req.body || {};
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Missing fields" });
+      return res.status(400).json({ message: "Missing email or password" });
     }
 
     const user = await userModel.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "User not found" });
     }
 
-    if (!user.password) {
-      throw new Error("User password missing in DB");
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Wrong password" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET missing in env");
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "none",
-      secure: true, // ✅ correct for tunnel
+      sameSite: "lax",
+      secure: false,
     });
 
-    return res.status(200).json({ message: "Login success" });
+    return res.status(200).json({
+      message: "Login success",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
   } catch (err) {
-    console.error("🔥 LOGIN CRASH:", err);
+    console.error("LOGIN ERROR:", err);
     next(err);
   }
 }
@@ -117,15 +118,15 @@ export async function logoutUserController(req, res, next) {
 
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      sameSite: "lax",
+      secure: false,
     });
 
     return res.status(200).json({
-      message: "User Logout Successfully",
+      message: "Logout successful",
     });
   } catch (err) {
-    console.error("🔥 LOGOUT ERROR:", err);
+    console.error("LOGOUT ERROR:", err);
     next(err);
   }
 }
@@ -140,7 +141,6 @@ export async function getMeController(req, res, next) {
     }
 
     return res.status(200).json({
-      message: "User Details fetched successfully",
       user: {
         id: user._id,
         username: user.username,
@@ -148,7 +148,7 @@ export async function getMeController(req, res, next) {
       },
     });
   } catch (err) {
-    console.error("🔥 GETME ERROR:", err);
+    console.error("GETME ERROR:", err);
     next(err);
   }
 }

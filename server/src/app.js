@@ -8,27 +8,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}))
 
-/* CORS */
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
 
-      if (
-        allowedOrigins.includes(origin) ||
-        /^https:\/\/([a-z0-9-]+\.)*tunnel\.stylnode\.in$/i.test(origin)
-      ) {
-        return callback(null, true);
-      }
-
-      console.error("❌ CORS Blocked:", origin);
-      return callback(null, false); // ⚠️ do NOT throw error
-    },
-    credentials: true,
-  }),
-);
 
 /* Health check */
 app.get("/health", (req, res) => {

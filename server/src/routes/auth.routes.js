@@ -51,6 +51,6 @@ authRouter.post("/logout", logoutUserController);
  * @controller getMeController
  * -------------------------------------------------------------
  */
-authRouter.get("/get-me", authUser, getMeController);
+authRouter.get("/getme", authUser, getMeController);
 
 export default authRouter;

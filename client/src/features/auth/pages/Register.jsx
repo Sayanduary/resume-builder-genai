@@ -1,9 +1,30 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import "../auth.form.scss";
+import { useAuth } from "../hooks/useAuth";
+import { useState } from "react";
+
 export default function Register() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { Loading, handleRegister } = useAuth();
+
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    handleRegister({ username, email, password });
+    navigate("/");
   };
+
+  if (Loading) {
+    return (
+      <main>
+        <h1>loading...</h1>
+      </main>
+    );
+  }
 
   return (
     <main>
@@ -12,11 +33,27 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label htmlFor="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter Your Username" />
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter Your Username"
+              onChange={(e) => {
+                setUsername(e.target.value);
+              }}
+            />
           </div>
           <div className="input-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="Enter Email Address" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter Email Address"
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
+            />
           </div>
 
           <div className="input-group">
@@ -26,6 +63,9 @@ export default function Register() {
               id="password"
               name="password"
               placeholder="Enter Your Password"
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
             />
           </div>
 
