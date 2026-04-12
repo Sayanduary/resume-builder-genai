@@ -1,29 +1,23 @@
-import { Link } from "react-router";
-import { useState } from "react";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router';
 import "../auth.form.scss";
-import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from '../hooks/useAuth';
 
-export default function Login() {
+const Login = () => {
+  const { loading, handleLogin } = useAuth();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { Loading, handleLogin } = useAuth();
-
-  const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    handleLogin({ email, password });
-    navigate("/");
+    await handleLogin({ email, password });
+    navigate('/');
   };
 
-  if (Loading) {
-    return (
-      <main>
-        <h1>loading...</h1>
-      </main>
-    );
+  if (loading) {
+    return (<main><h1>Loading.......</h1></main>);
   }
 
   return (
@@ -32,30 +26,23 @@ export default function Login() {
         <h1>Login</h1>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
-              type="email"
-              placeholder="Enter Email Address"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+              onChange={(e) => { setEmail(e.target.value); }}
+              type="email" id="email" name='email' placeholder='Enter email address' />
           </div>
-
           <div className="input-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
-              type="password"
-              placeholder="Enter Your Password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              onChange={(e) => { setPassword(e.target.value); }}
+              type="password" id="password" name='password' placeholder='Enter password' />
           </div>
-
-          <button className="button primary-button">Login</button>
+          <button className='button primary-button' >Login</button>
         </form>
-
-        <p>
-          Don't have an Account? <Link to="/register">Register Here</Link>
-        </p>
+        <p>Don't have an account? <Link to={"/register"} >Register</Link> </p>
       </div>
     </main>
   );
-}
+};
+
+export default Login;
