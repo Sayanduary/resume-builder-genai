@@ -35,7 +35,7 @@ export async function registerUserController(req, res, next) {
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     res.cookie("token", token, {
@@ -60,10 +60,9 @@ export async function registerUserController(req, res, next) {
 
 /* ================= LOGIN ================= */
 export async function loginUserController(req, res, next) {
-  console.log("LOGIN HIT")
+  console.log("LOGIN HIT");
   try {
     const { email, password } = req.body;
-
 
     if (!email || !password) {
       return res.status(400).json({ message: "Missing email or password" });
@@ -81,11 +80,9 @@ export async function loginUserController(req, res, next) {
       return res.status(400).json({ message: "Wrong password" });
     }
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
