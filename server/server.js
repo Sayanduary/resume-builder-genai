@@ -1,6 +1,13 @@
 import { configDotenv } from "dotenv";
 import app from "./src/app.js";
 import connectDatabase from "./src/config/db.js";
+import {
+  dummyJobDescription,
+  dummyResume,
+  dummySelfDescription,
+} from "./src/services/test.js";
+
+import { generateInterviewReport } from "./src/services/ai.service.js";
 
 configDotenv();
 
@@ -11,6 +18,11 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
+generateInterviewReport({
+  dummyResume,
+  dummySelfDescription,
+  dummyJobDescription,
+});
 const startServer = async () => {
   try {
     await connectDatabase();
